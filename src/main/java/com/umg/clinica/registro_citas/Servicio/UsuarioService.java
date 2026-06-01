@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UsuarioService {
@@ -30,5 +31,27 @@ public class UsuarioService {
 
     public List<Usuario> obtenerTodosLosUsuarios() {
         return usuarioRepository.findAll();
+    }
+
+    public Optional<Usuario> actualizarUsuario(Long id, Usuario datos) {
+        return usuarioRepository.findById(id).map(usuario -> {
+            usuario.setUsername(datos.getUsername());
+            usuario.setRol(datos.getRol());
+
+            if (datos.getPassword() != null && !datos.getPassword().isBlank()) {
+                usuario.setPassword(passwordEncoder.encode(datos.getPassword()));
+            }
+
+            return usuarioRepository.save(usuario);
+        });
+    }
+
+    public boolean eliminarUsuario(Long id) {
+        if (!usuarioRepository.existsById(id)) {
+            return false;
+        }
+
+        usuarioRepository.deleteById(id);
+        return true;
     }
 }
