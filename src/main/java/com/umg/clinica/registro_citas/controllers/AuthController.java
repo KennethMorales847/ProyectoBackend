@@ -6,6 +6,8 @@ import com.umg.clinica.registro_citas.modelo.AuthenticationResponse;
 import com.umg.clinica.registro_citas.modelo.Usuario;
 import com.umg.clinica.registro_citas.security.JwtUtil;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -51,7 +53,15 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody Usuario usuario) {
-        usuarioService.registrarUsuario(usuario);
-        return ResponseEntity.ok("Usuario registrado correctamente");
+        try {
+            usuarioService.registrarUsuario(usuario);
+            return ResponseEntity.ok("Usuario registrado correctamente");
+        } catch (DataIntegrityViolationException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("No se pudo registrar: el usuario ya existe o hay un dato duplicado.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("No se pudo registrar el usuario. Verifica username, password y rol.");
+        }
     }
 }
